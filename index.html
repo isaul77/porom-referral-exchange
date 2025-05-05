@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Визуальные закладки</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-image: url('https://images.unsplash.com/photo-1517336714731-489689fd1ca8?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=MnwzNjUyOXwwfDF8c2VhcmNofDEyfHxkaWdpdGFsJTIwY29tcGxleHxlbnwwfHx8fDE2MjY4Njg1Mjg&ixlib=rb-1.2.1&q=80&w=1080'); /* Ссылка на изображение */
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-position: center;
+            margin: 0;
+            padding: 20px;
+            color: #fff; /* Цвет текста */
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.9); /* Полупрозрачный фон для контейнера */
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+        }
+        h1, h2 {
+            text-align: center;
+            color: #333;
+        }
+        .bookmarks {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+        }
+        .bookmark {
+            background: #fafafa;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            width: 150px;
+            text-align: center;
+            padding: 10px;
+            transition: transform 0.2s;
+        }
+        .bookmark img {
+            width: 100%;
+            height: auto;
+            border-radius: 5px;
+        }
+        .bookmark a {
+            text-decoration: none;
+            color: #007bff;
+            font-weight: bold;
+            display: block;
+            margin-top: 5px;
+        }
+        .form-container {
+            margin-top: 20px;
+        }
+        .form-container input[type="text"] {
+            width: calc(100% - 22px);
+            padding: 10px;
+            margin: 5px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .form-container input[type="submit"] {
+            padding: 10px 15px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .form-container input[type="submit"]:hover {
+            background-color: #0056b3;
+        }
+        .form-container input[type="text"]:disabled {
+            background-color: #e9ecef;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Пройдите по всем пяти ссылкам, чтобы добавить в очередь свою ссылку!</h1>
+        <div class="bookmarks" id="bookmarks">
+            <!-- Закладки будут добавляться сюда -->
+        </div>
+
+        <div class="form-container">
+            <h2>Добавить ссылку</h2>
+            <form id="linkForm">
+                <input type="text" id="url" placeholder="Введите URL вашего сайта (http:// или https://)" required disabled>
+                <input type="submit" value="Добавить сайт" disabled>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const bookmarksContainer = document.getElementById('bookmarks');
+        const urlInput = document.getElementById('url');
+        const submitButton = document.querySelector('input[type="submit"]');
+        const userClickCountKey = 'userClickCount';
+        const maxClicks = 5;
+
+        // Массив с заранее определенными сайтами
+        const predefinedSites = [
+            "https://t.me/SlapStarBot/app?startapp=iKJSq0xZK9KsyQm79Isc",
+            "https://t.me/BuyCrypt_AirDrop_bot?start=ref-b0437bb4b5378cc2",
+            "https://t.me/StarfallAppBot/start?startapp=6244751818",
+            "https://t.me/head_coin_bot/start?startapp=bonusId6244751818",
+            "https://t.me/anomalyhunter_bot/anomalyhunter/?startapp=6244751818"
+        ];
+
+        // Функция для извлечения названия сайта из URL
+        function getSiteName(url) {
+            try {
+                const hostname = new URL(url).hostname.replace('www.', '');
+                return hostname.charAt(0).toUpperCase() + hostname.slice(1);
+            } catch (error) {
+                return '';
+            }
+        }
+
+        // Функция для проверки корректности URL
+        function isValidUrl(url) {
+            const pattern = new RegExp('^(https?:\\/\\/)?' + // protocol
+                '((([a-z0-9](?:[a-z0-9-]*[a-z0-9])?)\\.)+[a-z]{2,}|' + // domain name
+                'localhost|' + // localhost
+                '\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}|' + // ipv4
+                '\\[?[a-f0-9]*:[a-f0-9:%.~]*\\]?)' + // ipv6
+                '(\\:\\d+)?(\\/[-a-z0-9+&@#/%=~_|\\[\\]\\.\\?]*)*' + // path
+                '(\\?[;&a-z0-9+%\\[\\]@#\\/.~]*)?' + // query string
+                '(\\#[-a-z0-9+&@#/%=~_|\\[\\]\\.\\?]*)?$','i'); // fragment locator
+            return !!pattern.test(url);
+        }
+
+        // Функция для добавления закладки
+        function addBookmark(url) {
+            const siteName = getSiteName(url);
+            const newBookmark = document.createElement('div');
+            newBookmark.classList.add('bookmark');
+            newBookmark.innerHTML = `
+                <img src="https://via.placeholder.com/150.png?text=${encodeURIComponent(siteName)}" alt="${siteName}">
+                <a href="${url}" target="_blank">${siteName}</a>
+            `;
+            bookmarksContainer.insertBefore(newBookmark, bookmarksContainer.firstChild);
+
+            const currentBookmarks = bookmarksContainer.children;
+            if (currentBookmarks.length > 5) {
+                bookmarksContainer.removeChild(currentBookmarks[currentBookmarks.length - 1]);
+            }
+        }
+
+        // Добавляем предопределенные сайты при загрузке
+        predefinedSites.forEach(site => addBookmark(site));
+
+        // Проверка и установка состояния ввода
+        function checkInputState() {
+            const clickCount = parseInt(localStorage.getItem(userClickCountKey)) || 0;
+            urlInput.disabled = clickCount < maxClicks;
+            submitButton.disabled = clickCount < maxClicks;
+        }
+
+        // Обработчик отправки формы
+        document.getElementById('linkForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const url = urlInput.value;
+            if (isValidUrl(url)) {
+                addBookmark(url);
+                urlInput.value = '';
+                submitButton.disabled = true;
+                localStorage.setItem(userClickCountKey, 0); // Сбрасываем счетчик кликов
+                checkInputState(); // Обновляем состояние ввода
+            } else {
+                alert('Пожалуйста, введите корректный URL.');
+            }
+        });
+
+        // Обработчик клика по закладкам
+        bookmarksContainer.addEventListener('click', function(event) {
+            if (event.target.tagName === 'A') {
+                const clickCount = parseInt(localStorage.getItem(userClickCountKey)) || 0;
+                localStorage.setItem(userClickCountKey, clickCount + 1); // Увеличиваем счетчик кликов
+                checkInputState(); // Проверяем состояние ввода
+            }
+        });
+
+        // Инициализация состояния ввода при загрузке
+        checkInputState();
+    </script>
+</body>
+</html>
